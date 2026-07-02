@@ -1,1 +1,1 @@
-- [Tartışmanya mobile app](tartismanya-mobile.md) — Expo dark-only debate app; demo mode until Firebase env vars are set; key architectural decisions.
+- [Tartışmanya app (mobile + web)](tartismanya-mobile.md) — Expo + React/Vite dark debate platform; dual-mode Firebase/demo auth; isAdmin always derived from email, never stored.

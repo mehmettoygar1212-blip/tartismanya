@@ -1,39 +1,38 @@
 ---
-name: Tartışmanya mobile app
-description: Architecture decisions, demo-mode rules, and known quirks for the Expo debate app.
+name: Tartışmanya app (mobile + web)
+description: Architecture decisions, demo-mode rules, and known quirks for the Expo + React/Vite debate platform.
 ---
 
-## Demo admin access
-Only `admin@tartismanya.com` (exact match, lowercase) triggers admin mode in demo. Substring matching was deliberately removed to prevent privilege escalation.
+## Admin access (both platforms)
+Only `admin@tartismanya.com` (exact match, lowercase) triggers admin mode in demo.
+`isAdmin` is always **derived from email at runtime** — never trusted from localStorage or stored state.
 
-**Why:** Code review flagged substring `email.includes('admin')` as a direct privilege-escalation path. Fixed to exact-match constant.
+**Why:** Substring match was a privilege-escalation path. Storing `isAdmin: true` in localStorage/AsyncStorage allows tampering. Derivation at load-time removes the attack surface.
 
-**How to apply:** Never revert to substring-based admin checks. In Firebase mode, admin flag comes from Firestore user document only.
+**How to apply:** Never persist isAdmin. Never substring-match email for admin. In Firebase mode, admin should come from custom claims or a Firestore user document (not implemented yet — frontend derives from email as a stand-in).
 
-## Firebase auth subscription cleanup
-`initAuth()` is async, so the `useEffect` cleanup cannot use `return asyncFn()` — the returned Promise is not a cleanup function.
+## Firebase auth subscription cleanup (both platforms)
+`initAuth()` is async, so the `useEffect` cleanup cannot use `return asyncFn()`. Use `useRef` to store the unsubscribe from `onAuthStateChanged`, and call it in the effect's return function.
 
-**Why:** The unsubscribe from `onAuthStateChanged` was being silently dropped, causing a memory/subscription leak.
+## Dual-mode auth (web — AuthContext)
+`IS_FIREBASE_CONFIGURED` (from `lib/firebase.ts`) gates the auth path:
+- **Firebase mode:** Uses `signInWithEmailAndPassword`, `createUserWithEmailAndPassword`, `GoogleAuthProvider` + `signInWithPopup`. `onAuthStateChanged` subscriber drives state.
+- **Demo mode:** Accepts any credentials, stores profile in `localStorage`. `isAdmin` re-derived from email on every load (not from stored value).
 
-**How to apply:** Use `useRef` to store the unsubscribe, set it inside the async init, and clean it up in the effect's return function. See `context/AuthContext.tsx`.
+## Vote immutability
+`castVote` in AppContext returns early if `votes[roomId]` already exists — votes cannot be changed after casting. UI gates are a secondary enforcement only.
 
 ## AppContext message seeding
-`getMessages()` must be a pure read — never call `setState` during render. Seed all rooms' messages upfront via `useState(buildInitialMessages)` (lazy initializer).
+`getMessages()` must be a pure read — seed all messages upfront in `useState` lazy initializer. Never call setState during render.
 
-**Why:** Calling `setMessages` inside `getMessages` (which is called during render) caused React anti-pattern warnings and potential infinite loops.
+## FlatList + inverted (mobile)
+With `inverted` on FlatList, pass messages in chronological order (oldest first). Do NOT reverse — inverted already flips display.
 
-**How to apply:** Keep `buildInitialMessages` as the lazy initializer; `getMessages` only reads from state.
-
-## FlatList + inverted
-With `inverted` on FlatList, pass messages in chronological order (oldest first). Do NOT reverse the array before passing — inverted already flips display.
-
-**Why:** `[...messages].reverse()` + `inverted` was double-reversing, and recreating an array on every render.
-
-## Firebase auth import
-`getReactNativePersistence` may not be available in all Firebase SDK builds. Always wrap `initializeAuth` with `getReactNativePersistence` in a try/catch and fall back to `getAuth(app)`.
+## Firebase auth import (mobile)
+`getReactNativePersistence` may not be available in all Firebase SDK builds. Wrap in try/catch and fall back to `getAuth(app)`.
 
 ## Dark-only theme
-Both `colors.light` and `colors.dark` in `constants/colors.ts` hold the same dark brand palette. `useColors()` always returns dark tokens regardless of system scheme. Do NOT add a separate light palette unless explicitly requested.
+Both platforms are permanently dark. Force `class="dark"` on `<html>` (web) and always return dark tokens from `useColors()` (mobile). Never add a light mode toggle.
 
-## Plus Jakarta Sans font
-Font family names: `PlusJakartaSans_400Regular`, `PlusJakartaSans_500Medium`, `PlusJakartaSans_600SemiBold`, `PlusJakartaSans_700Bold`. Loaded in `app/_layout.tsx` via `useFonts`.
+## Font
+Both platforms use Plus Jakarta Sans. Web: `@import url(...)` must be the very first line of `index.css`. Mobile: loaded via `useFonts` in `app/_layout.tsx`.

@@ -69,6 +69,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const getVote = (roomId: string) => votes[roomId] || null;
 
   const castVote = (roomId: string, team: 'A' | 'B') => {
+    // Votes are immutable — ignore if the user already voted in this room.
+    if (votes[roomId]) return;
     const newVotes = { ...votes, [roomId]: team };
     setVotes(newVotes);
     localStorage.setItem('tartismanya_votes', JSON.stringify(newVotes));
