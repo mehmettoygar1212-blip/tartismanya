@@ -1,45 +1,81 @@
-# [Project name]
+# Tartışmanya
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
-
-## Run & Operate
-
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+A Turkish multi-room social debate mobile app built with Expo (React Native).
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- **Frontend**: Expo SDK 52, React Native, Expo Router (file-based routing)
+- **Auth**: Firebase Auth (Google + email/password) — falls back to demo mode if env vars are missing
+- **Database**: Firebase Firestore — falls back to AsyncStorage in demo mode
+- **Fonts**: Plus Jakarta Sans (`@expo-google-fonts/plus-jakarta-sans`)
+- **Storage**: AsyncStorage for local persistence
+- **Styling**: Custom dark theme only (`constants/colors.ts`)
 
-## Where things live
+## Architecture
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+```
+artifacts/mobile/
+├── app/
+│   ├── _layout.tsx          # Root layout, font loading, AuthGate
+│   ├── (auth)/
+│   │   ├── _layout.tsx
+│   │   └── login.tsx        # Login / register with Google option
+│   ├── (tabs)/
+│   │   ├── _layout.tsx      # Custom floating BlurView tab bar
+│   │   ├── index.tsx        # Room grid (Odalar)
+│   │   ├── leaderboard.tsx  # Top-10 leaderboard (Sıralama)
+│   │   └── profile.tsx      # User profile + admin link
+│   ├── room/
+│   │   └── [id].tsx         # Room detail: poll + 3-tab chat
+│   └── admin/
+│       └── index.tsx        # Admin panel (stats, polls, users, complaints)
+├── components/              # Reusable UI components
+├── constants/
+│   ├── colors.ts            # Brand palette (dark-only)
+│   └── rooms.ts             # 10 debate room definitions with mock data
+├── context/
+│   ├── AuthContext.tsx      # Auth state, login/logout, demo mode
+│   └── AppContext.tsx       # Rooms, votes, chat messages
+└── lib/
+    ├── firebase.ts          # Lazy Firebase init from env vars
+    └── storage.ts           # AsyncStorage thin wrapper
+```
 
-## Architecture decisions
+## Running the App
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+The Expo dev server runs via the `artifacts/mobile: expo` workflow.
 
-## Product
+To preview on a physical device, scan the QR code shown in the workflow logs with the **Expo Go** app.
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+## Firebase Setup
 
-## User preferences
+The app runs in **demo mode** (mock data, AsyncStorage) until you provide Firebase credentials as environment secrets:
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+| Secret | Description |
+|--------|-------------|
+| `EXPO_PUBLIC_FIREBASE_API_KEY` | Firebase Web API Key |
+| `EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN` | e.g. `your-project.firebaseapp.com` |
+| `EXPO_PUBLIC_FIREBASE_PROJECT_ID` | Firebase project ID |
+| `EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET` | e.g. `your-project.appspot.com` |
+| `EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Numeric sender ID |
+| `EXPO_PUBLIC_FIREBASE_APP_ID` | Firebase App ID |
 
-## Gotchas
+## Demo Mode
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Any email/password logs in (no real auth)
+- Email containing "admin" gets admin panel access
+- Votes and chat messages are stored in AsyncStorage
 
-## Pointers
+## Design
 
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- **Theme**: Dark-only (`#0A0A0F` background)
+- **Team A**: `#FF6B35` (orange)
+- **Team B**: `#4A90E2` (blue)
+- **Accent/Premium**: `#FFD700` (gold)
+- **Font**: Plus Jakarta Sans
+
+## User Preferences
+
+- Dark-only theme — do not add light mode
+- Turkish language for all UI text
+- Plus Jakarta Sans font throughout

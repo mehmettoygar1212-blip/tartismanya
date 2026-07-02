@@ -1,0 +1,66 @@
+Play Store için "Tartışmanya" - Çok Odalı Sosyal Tartışma Platformu. GÜNLÜK 200.000 KULLANICI. React + Vite + TypeScript + Tailwind + Framer Motion + Firebase + Capacitor.
+
+ANA KONSEPT V2 - ÇOK ODALI SİSTEM:
+Tek anket yok. 10 farklı kategori odası var. Her odada günlük farklı anket. Kullanıcı istediği odaya girer, oy verir, o odanın chat'inde kalır. Etkileşim x10.
+
+ODALAR - 10 ADET:
+1. Gündem: Siyaset, ülke meseleleri
+2. Futbol: GS, FB, BJK, transfer
+3. Magazin: Ünlüler, dizi, olaylar  
+4. Teknoloji: iPhone vs Samsung, AI
+5. Yemek: Menemen soğanlı mı kavgası burada
+6. İlişkiler: Kız/erkek muhabbeti
+7. Oyun: LOL, Valorant, CS2
+8. Araba: BMW vs Mercedes, TOGG
+9. Finans: Borsa, kripto, altın
+10. Serbest Kürsü: Random konular
+
+Her oda = Ayrı anket + Ayrı A/B chat + Ayrı üye sayısı. Ana sayfada oda kartları göster. "Futbol Odası - 12.432 kişi aktif, %67 A takımı önde"
+
+TASARIM - ULTRA PREMIUM:
+Glassmorphism + Gradient + Mikro animasyon. Renk: Gece #0A0A0F, Kart #15151F, A Turuncu #FF6B35, B Mavi #4A90E2. Font Plus Jakarta Sans. Framer Motion: kartlar stagger fade-in, buton bounce, bar animasyonlu dolsun. Bottom tab floating blur. 3 saniye kuralı: Giren ne yapacağını anında anlasın.
+
+GİRİŞ: Google + Email/Şifre. Firebase Auth. Şifremi unuttum çalışsın.
+
+200K ÖLÇEKLENEBİLİRLİK:
+1. Firestore Sharding: rooms/gundem/votes_2026_01, rooms/futbol/chat_2026_01_15
+2. Cloud Functions: castVote, sendMessage, calculatePercent. Rate limit 5/sn/user.
+3. Cache: Her odanın aktif anketi 30sn cache. 10 oda x 20k kişi = DB rahat.
+4. Pagination: Chat son 50 mesaj, yorum son 20.
+5. Index: rooms + poll_id + timestamp composite index.
+
+ÖZELLİKLER:
+1. Oda Listesi: Ana sayfa 10 oda grid. Her kartta: İkon, Oda adı, Aktif üye, Anlık yüzde.
+2. Oda İçi: Üstte anket soru + A/B buton. Oy verince aşağıda 2 tab: "A Takımı Chat", "B Takımı Chat". + "Global Yorumlar" tab.
+3. Chat: WhatsApp hızında. Sesli mesaj 15sn, emoji, GIF, yanıtlama, "yazıyor". Günde 50 mesaj bedava, sonrası reklam izle veya Plus.
+4. Profil: 10 odadaki toplam skor. Rozet: "Futbol Odası Lideri", "10 Oda Fatihi".
+5. Bildirim: "Gündem odasında kavga kızıştı!", "Futbol odasında etiketlendin"
+
+PARA KAZANMA:
+AdMob Banner her oda üstü + Geçiş %15 + Ödüllü chat hakkı. Premium 49.99₺: Reklamsız, sınırsız chat, anket açma, altın isim.
+
+ADMİN PANELİ - /admin ROUTE - SADECE SEN GİRERSİN:
+Güvenlik: Firebase Custom Claims. role: "admin" olan girer. Email'ini bana söyle, admin yaparım.
+
+ADMİN ÖZELLİKLERİ:
+1. Anket Yönetimi: "Yeni Anket Ekle" → Oda seç → Soru → A/B seçenek → Başlangıç/Bitiş tarihi → Yayınla. Eski anketi pasif yap. Günde 10 odaya 10 yeni anketi 5 dk'da eklersin.
+2. Kullanıcı Yönetimi: Kullanıcı ara → Profil gör → "24 Saat Sustur", "7 Gün Ban", "Kalıcı Ban" butonları. Ban sebebi yaz. Banlanan giriş yapamaz.
+3. Şikayet Masası: Kullanıcılar chat/yorum "Şikayet Et" diyebilir. Sebep: Küfür, Spam, Taciz, Reklam. Admin panelde tablo: Şikayet eden, Edilen, Mesaj, Tarih, "İncele" butonu. İncele → Mesajı sil + Kullanıcıya ceza ver.
+4. Küfür Filtresi: Yasaklı kelime listesi ekle. "amk, aq, siktir" vs. Mesaj Cloud Function'dan geçerken filtrele, * yap veya engelle.
+5. İstatistik: Realtime Dashboard. Anlık aktif kullanıcı, Oda bazlı üye, Günlük oy, Günlük chat mesajı, Reklam geliri, Banlanan sayısı. Chart.js ile grafik.
+6. Duyuru Gönder: Tüm kullanıcılara push bildirim at: "Yeni özellik geldi" 
+7. Öne Çıkan Anket: Bir odayı manuel "Günün Kavgası" yap, ana sayfa en üste sabitle.
+
+FIREBASE SECURITY RULES:
+1. rooms/{room}/chat: sadece odaya oy veren yazabilir
+2. complaints: kullanıcı sadece oluşturabilir, admin okur/siler
+3. admin: sadece role=admin olan erişir
+4. bannedUsers: listede olan giriş yapamaz
+
+TEKNİK:
+Zustand + React Query + Capacitor + .env. Lighthouse 95+. Seed data: 10 oda, 20 anket, 50k oy.
+
+ÇIKTI:
+1. Kullanıcı app önizleme
+2. /admin panel önizleme ayrı ver
+3. APK build + Firebase maliyet 200k için

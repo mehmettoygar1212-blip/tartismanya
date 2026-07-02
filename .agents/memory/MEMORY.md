@@ -1,0 +1,1 @@
+- [Tartışmanya mobile app](tartismanya-mobile.md) — Expo dark-only debate app; demo mode until Firebase env vars are set; key architectural decisions.
